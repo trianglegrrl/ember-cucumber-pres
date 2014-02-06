@@ -66,6 +66,10 @@
 						<div>
 							<br>
 						</div>
+						<div>Ember-Testing isn't for integration testing (Rails + Ember)</div>
+						<div>
+							<br>
+						</div>
 						<div>App has non-Ember pages (login, redirection)</div>
 						<div>
 							<br>
@@ -151,81 +155,30 @@ end
 							<div>
 								<br>
 							</div>
-							<div>Ember runloop doesn't always complete before a Cucumber action fires</div>
+							<div>Ember runloop doesn't always complete before a Cucumber step fires</div>
 						</section>
+
 						<section>
-							<h2>making capybara ember-aware</h2>
+							<h2>Capybara becomes Ember-aware</h2>
 							<div>
 								<br>
 							</div>
-							<div>Add <span style="background-color: rgb(63, 63, 63); color: rgb(220, 220, 220); font-family: monospace; text-align: left; white-space: pre-wrap;">body</span>
-								<span>class for Ajax completion</span>
-							</div>
 							<div>
-								<pre>
-									<code>$ -&gt;
-&nbsp;&nbsp;body = $('body')
-&nbsp;&nbsp;doc  = $(document)
-&nbsp;&nbsp;doc.ajaxStart -&gt;
-&nbsp;&nbsp;body.addClass('ajax-in-progress').removeClass('ajax-quiet')
-&nbsp;&nbsp;doc.ajaxStop  -&gt;
-&nbsp;&nbsp;body.addClass('ajax-quiet').removeClass('ajax-in-progress')
-										</code>
-									</pre>
-								</div>
-							</section>
-							<section>
-								<h2>More patience - bigger hammer</h2>
-								<div>
-									<br>
-								</div>
-								<div>
-									<pre><code>
-def wait_for_html_element_on_page
-&nbsp;&nbsp;2000.times do
-&nbsp;&nbsp;&nbsp;&nbsp;if page
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;find :css, "html"
-&nbsp;&nbsp;&nbsp;&nbsp;end
-&nbsp;&nbsp;&nbsp;&nbsp;sleep 0.01
-&nbsp;&nbsp;end
-end
-
-def wait_for_page_to_load
-&nbsp;&nbsp;2000.times do
-&nbsp;&nbsp;&nbsp;&nbsp;unless page
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sleep 0.01
-&nbsp;&nbsp;&nbsp;&nbsp;end
-&nbsp;&nbsp;end
-&nbsp;&nbsp;expect(page).to be
-end
-										</code></pre>
-									</div>
-								</section>
-								<section>
-									<h2>Capybara becomes Ember-aware</h2>
-									<div>
-										<br>
-									</div>
-									<div>
-										<pre><code>
+								<pre><code>
 def wait_for_ember_application_to_load
-&nbsp;&nbsp;wait_for_page_to_load
-&nbsp;&nbsp;wait_for_html_element_on_page
-
 &nbsp;&nbsp;using_wait_time 20 do
 &nbsp;&nbsp;&nbsp;patiently do
 &nbsp;&nbsp;&nbsp;&nbsp;find ".ember-application"
-&nbsp;&nbsp;&nbsp;&nbsp;find ".application-ready"
 &nbsp;&nbsp;&nbsp;end
 &nbsp;&nbsp;end
 &nbsp;&nbsp;wait_for_ember_run_loop_to_complete # Then a miracle happens
 end
-											</code></pre>
-										</div>
-										<div>
-											<br>
-										</div>
-									</section>
+									</code></pre>
+								</div>
+								<div>
+									<br>
+								</div>
+							</section>
 									<section>
 										<h2>h4x041ng 3mb3r</h2>
 										<div>
@@ -250,18 +203,9 @@ end
 										<div>
 											<pre><code>
 def wait_for_ember_run_loop_to_complete
-&nbsp;&nbsp;patiently do
-&nbsp;&nbsp;&nbsp;&nbsp;wait_for_page_to_load
-&nbsp;&nbsp;end
-&nbsp;&nbsp;patiently do
-&nbsp;&nbsp;&nbsp;&nbsp;wait_for_html_element_on_page
-&nbsp;&nbsp;end
-&nbsp;&nbsp;patiently do
-&nbsp;&nbsp;&nbsp;&nbsp;return unless page.has_css? '.ember-application'
-&nbsp;&nbsp;end
 &nbsp;&nbsp;2000.times do #this means up to 20 seconds
 &nbsp;&nbsp;&nbsp;&nbsp;return if page.evaluate_script "'undefined' == typeof window.jQuery"
-&nbsp;&nbsp;&nbsp;&nbsp;return if page.evaluate_script "jQuery.active &amp;&amp; jQuery('body').hasClass('application-ready') &amp;&amp; (typeof Ember === 'object') &amp;&amp; !Ember.run.hasScheduledTimers() &amp;&amp; !Ember.run.currentRunLoop"
+&nbsp;&nbsp;&nbsp;&nbsp;return if page.evaluate_script "jQuery.active === 0 &amp;&amp; (typeof Ember === 'object') &amp;&amp; !Ember.run.hasScheduledTimers() &amp;&amp; !Ember.run.currentRunLoop"
 &nbsp;&nbsp;&nbsp;&nbsp;sleep 0.01
 &nbsp;&nbsp;end
 end
@@ -275,9 +219,8 @@ end
 											</div>
 											<div>
 												<pre><code>
-jQuery.active &amp;&amp;
-jQuery('body').hasClass('application-ready') &amp;&amp;
-(typeof Ember === 'object') &amp;&amp;
+jQuery.active === 0 &amp;&amp; // Is there a pending Ajax request
+(typeof Ember === 'object') &amp;&amp; // Does this page have Ember?
 !Ember.run.hasScheduledTimers() &amp;&amp;
 !Ember.run.currentRunLoop
 												</code>    </pre>
