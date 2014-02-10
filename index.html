@@ -180,6 +180,28 @@ end
 								</div>
 							</section>
 									<section>
+										<h2>Add jQuery to track Ajax request status</h2>
+										<div>
+											<br>
+										</div>
+										<div>
+											<pre>
+<code>
+$(function() {
+  var body, doc;
+  body = $('body');
+  doc = $(document);
+  doc.ajaxStart(function() {
+    return body.addClass('ajax-in-progress').removeClass('ajax-quiet');
+  });
+  return doc.ajaxStop(function() {
+    return body.addClass('ajax-quiet').removeClass('ajax-in-progress');
+  });
+});
+</code></pre>
+										</div>
+									</section>
+									<section>
 										<h2>h4x041ng 3mb3r</h2>
 										<div>
 											<br>
@@ -205,7 +227,7 @@ end
 def wait_for_ember_run_loop_to_complete
 &nbsp;&nbsp;2000.times do #this means up to 20 seconds
 &nbsp;&nbsp;&nbsp;&nbsp;return if page.evaluate_script "'undefined' == typeof window.jQuery"
-&nbsp;&nbsp;&nbsp;&nbsp;return if page.evaluate_script "jQuery.active === 0 &amp;&amp; (typeof Ember === 'object') &amp;&amp; !Ember.run.hasScheduledTimers() &amp;&amp; !Ember.run.currentRunLoop"
+&nbsp;&nbsp;&nbsp;&nbsp;return if page.evaluate_script "$('body').hasClass('ajax-quiet') &amp;&amp; (typeof Ember === 'object') &amp;&amp; !Ember.run.hasScheduledTimers() &amp;&amp; !Ember.run.currentRunLoop"
 &nbsp;&nbsp;&nbsp;&nbsp;sleep 0.01
 &nbsp;&nbsp;end
 end
